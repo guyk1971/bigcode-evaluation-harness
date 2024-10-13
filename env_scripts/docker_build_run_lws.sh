@@ -20,7 +20,7 @@ if [ -z "$(docker images -q ${IMAGE})" ]; then
 
     echo "  RUN apt-get update" >> $FILE
     echo "  RUN apt-get -y install nano gdb time" >> $FILE
-    echo "  RUN apt-get -y install libboost-all-dev" >> $FILE 
+    # echo "  RUN apt-get -y install libboost-all-dev" >> $FILE  # this should be installed from within the running docker
     # echo "  RUN apt-get -y install nvidia-cuda-gdb" >> $FILE
     echo "  RUN apt-get -y install sudo" >> $FILE
     echo "  RUN (groupadd -g $MY_GID $MY_UNAME || true) && useradd --uid $MY_UID -g $MY_GID --no-log-init --create-home $MY_UNAME && (echo \"${MY_UNAME}:password\" | chpasswd) && (echo \"${MY_UNAME} ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers)" >> $FILE
@@ -39,6 +39,7 @@ if [ -z "$(docker images -q ${IMAGE})" ]; then
     # echo "  RUN pip install transformers accelerate bitsandbytes peft datasets wandb pynvml tensorboard opencv_python lightning" >> $FILE
     echo "  ENV HF_HOME='/home/${MY_UNAME}/.cache/huggingface'" >> $FILE
     # END: install any additional package required for your image here
+    # the following is needed to enable the huggingface-hub. 
     echo "  ENV PATH='/home/${MY_UNAME}/.local/bin:${PATH}'" >> $FILE
     # echo "  ENV PYTHONPATH='/home/${MY_UNAME}/.local/lib/python3.10/site-packages:${PYTHONPATH}'"
     echo "  WORKDIR $DIR/.." >> $FILE

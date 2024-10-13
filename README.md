@@ -128,6 +128,43 @@ Below is an example, be mind of specifying arguments proper to the task you are 
 accelerate launch  main.py   --tasks mbpp  --allow_code_execution  --load_generations_path generations.json  --model incoder-temperature-08
 ```
 
+### My Examples
+
+generation and evaluation on `humanevalsynthesize-cpp` using `Qwen/CodeQwen1.5-7B-Chat` : 
+```bash
+accelerate config
+
+accelerate launch main.py \
+--model Qwen/CodeQwen1.5-7B-Chat  \
+--tasks humanevalsynthesize-cpp \
+--do_sample True \
+--temperature 0.2 \
+--n_samples 20 \
+--batch_size 5 \
+--allow_code_execution \
+--save_generations \
+--trust_remote_code \
+--prompt codeqwen \
+--save_generations_path outputs/generations_humanevalsynthesize-cpp_codeqwen15.json \
+--metric_output_path outputs/evaluation_humanevalsynthesize-cpp_codeqwen15.json \
+--max_length_generation 4096 \
+--precision bf16
+```
+
+
+Evaluation only on `humanevalsynthesize-cpp` using `Qwen/CodeQwen1.5-7B-Chat` : 
+```bash
+accelerate launch main.py \
+--model Qwen/CodeQwen1.5-7B-Chat \
+--tasks humanevalsynthesize-cpp \
+--load_generations_path outputs/generations_humanevalsynthesize-cpp_codeqwen15.json \
+--allow_code_execution  \
+--metric_output_path outputs/evaluation_humanevalsynthesize-cpp_codeqwen.json \
+--temperature 0.2 \
+--n_samples 20
+```
+
+
 ## Docker containers
 For safety, we provide a Dockerfiles to do the execution inside a docker container. To do that, first, do the generation on your machine and save them in `generations.json` for example by adding the flag `--generation_only` to the command. Then use the Docker image that we provide:
 

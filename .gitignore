@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+outputs/
 
 # Translations
 *.mo
@@ -160,6 +161,7 @@ cython_debug/
 #.idea/
 
 .vscode/
+.vscode-server/
 .trunk
 .DS_Store
 
