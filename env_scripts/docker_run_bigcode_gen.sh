@@ -1,4 +1,7 @@
 #!/bin/bash
+# Define variables
+
+#!/bin/bash
 # DIR is the directory where the script is saved (should be <project_root/scripts)
 DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 cd $DIR
@@ -6,47 +9,11 @@ cd $DIR
 MY_UID=$(id -u)
 MY_GID=$(id -g)
 MY_UNAME=$(id -un)
-BASE_IMAGE=nvcr.io/nvidia/pytorch:23.10-py3
-mkdir -p ${DIR}/.vscode-server
-LINK=$(realpath --relative-to="/home/${MY_UNAME}" "$DIR" -s)
-IMAGE=bigcode_eval
-if [ -z "$(docker images -q ${IMAGE})" ]; then
-    # Create dev.dockerfile
-    FILE=dev.dockerfile
+IMAGE=bigcode_gen:latest
+# mount the scratch folders : assuming you have a relative soft link to scratch created by  'ln -s ../scratch.gkoren_gpu scratch'
 
-    ### Pick Tensorflow / Torch based base image below
-    # echo "FROM nvcr.io/nvidia/tensorflow:23.01-tf2-py3" > $FILE
-    echo "FROM $BASE_IMAGE" > $FILE
+# HF_HOME=${HF_HOME:-/.cache/huggingface}
 
-    echo "  RUN apt-get update" >> $FILE
-    echo "  RUN apt-get -y install nano gdb time" >> $FILE
-    # echo "  RUN apt-get -y install libboost-all-dev" >> $FILE  # this should be installed from within the running docker
-    # echo "  RUN apt-get -y install nvidia-cuda-gdb" >> $FILE
-    echo "  RUN apt-get -y install sudo" >> $FILE
-    echo "  RUN (groupadd -g $MY_GID $MY_UNAME || true) && useradd --uid $MY_UID -g $MY_GID --no-log-init --create-home $MY_UNAME && (echo \"${MY_UNAME}:password\" | chpasswd) && (echo \"${MY_UNAME} ALL=(ALL) NOPASSWD: ALL\" >> /etc/sudoers)" >> $FILE
-
-    echo "  RUN mkdir -p $DIR" >> $FILE
-    echo "  RUN ln -s ${LINK}/.vscode-server /home/${MY_UNAME}/.vscode-server" >> $FILE
-    echo "  RUN echo \"fs.inotify.max_user_watches=524288\" >> /etc/sysctl.conf" >> $FILE
-    echo "  RUN sysctl -p" >> $FILE
-    echo "  USER $MY_UNAME" >> $FILE
-    
-    echo "  COPY docker.bashrc /home/${MY_UNAME}/.bashrc" >> $FILE     
-    echo "  RUN source /home/${MY_UNAME}/.bashrc" >> $FILE
-   # START: install any additional package required for your image here
-    echo "  COPY requirements.txt $DIR" >> $FILE 
-    echo "  RUN pip install -r $DIR/requirements.txt" >> $FILE
-    # echo "  RUN pip install transformers accelerate bitsandbytes peft datasets wandb pynvml tensorboard opencv_python lightning" >> $FILE
-    echo "  ENV HF_HOME='/home/${MY_UNAME}/.cache/huggingface'" >> $FILE
-    # END: install any additional package required for your image here
-    # the following is needed to enable the huggingface-hub. 
-    echo "  ENV PATH='/home/${MY_UNAME}/.local/bin:${PATH}'" >> $FILE
-    # echo "  ENV PYTHONPATH='/home/${MY_UNAME}/.local/lib/python3.10/site-packages:${PYTHONPATH}'"
-    echo "  WORKDIR $DIR/.." >> $FILE
-    echo "  CMD /bin/bash" >> $FILE
-
-    docker buildx build -f dev.dockerfile -t ${IMAGE} .
-fi
 # map the .cache of the scratch into the .cache in the container
 CACHE_FOLDER_ON_HOST=/home/${MY_UNAME}/scratch/.cache/
 MOUNT_CACHE_FOLDER=" --mount type=bind,source=${CACHE_FOLDER_ON_HOST},target=/home/${MY_UNAME}/.cache"
@@ -80,7 +47,6 @@ docker run \
     ${MOUNT_DATA_FOLDER} \
     ${MOUNT_CACHE_FOLDER} \
     --shm-size=8g \
-    --name bc_eval  \
     ${IMAGE}
 
     # --mount type=bind,source=/home/scratch.svc_compute_arch,target=/home/scratch.svc_compute_arch \

@@ -145,7 +145,7 @@ accelerate launch main.py \
 --save_generations \
 --trust_remote_code \
 --prompt codeqwen \
---save_generations_path outputs/generations_humanevalsynthesize-cpp_codeqwen15.json \
+--save_generations_path outputs/generations_codeqwen15.json \
 --metric_output_path outputs/evaluation_humanevalsynthesize-cpp_codeqwen15.json \
 --max_length_generation 4096 \
 --precision bf16
@@ -157,7 +157,7 @@ Evaluation only on `humanevalsynthesize-cpp` using `Qwen/CodeQwen1.5-7B-Chat` :
 accelerate launch main.py \
 --model Qwen/CodeQwen1.5-7B-Chat \
 --tasks humanevalsynthesize-cpp \
---load_generations_path outputs/generations_humanevalsynthesize-cpp_codeqwen15.json \
+--load_generations_path outputs/generations_codeqwen15_humanevalsynthesize-cpp.json \
 --allow_code_execution  \
 --metric_output_path outputs/evaluation_humanevalsynthesize-cpp_codeqwen.json \
 --temperature 0.2 \
