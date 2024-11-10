@@ -155,7 +155,6 @@ accelerate launch main.py \
 Evaluation only on `humanevalsynthesize-cpp` using `Qwen/CodeQwen1.5-7B-Chat` : 
 ```bash
 accelerate launch main.py \
---model Qwen/CodeQwen1.5-7B-Chat \
 --tasks humanevalsynthesize-cpp \
 --load_generations_path outputs/generations_codeqwen15_humanevalsynthesize-cpp.json \
 --allow_code_execution  \
