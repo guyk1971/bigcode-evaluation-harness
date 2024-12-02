@@ -8,6 +8,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # DSC
 # model_a = AutoModel.from_pretrained('DeepSeekCoder-v2-lite-base')
 # or 
+# tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-Coder-V2-Lite-Base")
 # model = AutoModelForCausalLM.from_pretrained("deepseek-ai/DeepSeek-Coder-V2-Lite-Base", trust_remote_code=True)
 
 
@@ -22,13 +23,14 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 # Function to measure latency
-def measure_latency(model, context_length):
+def measure_latency(model, tokenizer, context_length,max_new_tokens):
     # Create dummy input
     dummy_input = torch.randint(0, 1000, (1, context_length)).to(model.device)  # Adjust token range as needed
-
+    dummy_input_text = "This is a test input." * (context_length // len("This is a test input."))
+    dummy_input = tokenizer(dummy_input_text, return_tensors="pt").to(model.device)
     # Warm-up GPU
     for _ in range(10):
-        _ = model(dummy_input)
+        _ = model.generate(**dummy_input,max_new_tokens=max_new_tokens,pad_token_id=tokenizer.pad_token_id)
 
     # Measure inference time
     repetitions = 100
@@ -40,7 +42,7 @@ def measure_latency(model, context_length):
             end_event = torch.cuda.Event(enable_timing=True)
 
             start_event.record()
-            _ = model(dummy_input)
+            _ = model.generate(**dummy_input,max_new_tokens=max_new_tokens,pad_token_id=tokenizer.pad_token_id)
             end_event.record()
 
             # Wait for GPU synchronization
@@ -57,17 +59,27 @@ def measure_latency(model, context_length):
 
 
 def measure_model_latency(model_name):
-    model = AutoModel.from_pretrained(model_name,torch_dtype=torch.bfloat16,trust_remote_code=True)
+    # model = AutoModel.from_pretrained(model_name,torch_dtype=torch.bfloat16,trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name,torch_dtype=torch.bfloat16,trust_remote_code=True)
+
+    # Set pad_token_id to eos_token_id if not set
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+    model.config.pad_token_id = tokenizer.pad_token_id
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f'running on {device}')
     model.to(device)
     # Define context lengths to test
     context_lengths = [128, 256, 512, 1024]
+    max_new_tokens_list = [1,50,100,1024]
     # Measure and print results
     for length in context_lengths:
-        mean_a, std_a = measure_latency(model, length)
-        print(f'Context Length: {length}')
-        print(f'{model_name} latency: Mean={mean_a:.2f}ms, Std={std_a:.2f}ms')
+        for max_new_tokens in max_new_tokens_list:
+            mean_a, std_a = measure_latency(model,tokenizer, length,max_new_tokens)
+            print(f'Context Length: {length}, max new tokens: {max_new_tokens}')
+            print(f'{model_name} latency: Mean={mean_a:.2f}ms, Std={std_a:.2f}ms')
 
     return
 
