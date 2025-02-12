@@ -73,7 +73,7 @@ def measure_model_latency(model_name):
     model.to(device)
     # Define context lengths to test
     context_lengths = [128, 256, 512, 1024]
-    max_new_tokens_list = [1,50,100,1024]
+    max_new_tokens_list = [1,50,100,200]
     # Measure and print results
     for length in context_lengths:
         for max_new_tokens in max_new_tokens_list:
