@@ -57,6 +57,10 @@ MOUNT_CODE_FOLDER=" --mount type=bind,source=${CODE_FOLDER},target=${CODE_FOLDER
 DATA_FOLDER=/home/${MY_UNAME}/data
 MOUNT_DATA_FOLDER=" --mount type=bind,source=${DATA_FOLDER},target=${DATA_FOLDER}"
 
+MODELS_FOLDER_ON_HOST=/home/${MY_UNAME}/scratch/models/
+MOUNT_MODELS_FOLDER=" --mount type=bind,source=${MODELS_FOLDER_ON_HOST},target=/home/${MY_UNAME}/models"
+
+
 
 EXTRA_MOUNTS=""
 if [ -d "/home/${MY_UNAME}/scratch/" ]; then
@@ -79,6 +83,7 @@ docker run \
     ${MOUNT_CODE_FOLDER} \
     ${MOUNT_DATA_FOLDER} \
     ${MOUNT_CACHE_FOLDER} \
+    ${MOUNT_MODELS_FOLDER} \
     --shm-size=8g \
     --name bc_gen  \
     ${IMAGE}
